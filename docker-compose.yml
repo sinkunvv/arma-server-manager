@@ -40,7 +40,11 @@ services:
       - ./phpmyadmin/sessions:/sessions
      
   armaservermanager:
-    image: "fugasjunior/armaservermanager:${VERSION}"
+    #image: "fugasjunior/armaservermanager:${VERSION}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+
     restart: always
     # 'host' network mode is not available on Windows. If you need to run this image on Windows, you need to set up port mappings manually.
     #network_mode: host

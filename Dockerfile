@@ -70,6 +70,6 @@ ENV DIRECTORY_SERVERS=/home/steam/armaservermanager/servers
 ENV DIRECTORY_MODS=/home/steam/armaservermanager/mods
 ENV DIRECTORY_LOGS=/home/steam/armaservermanager/logs
 
-EXPOSE 2300/tcp
+EXPOSE 8080/tcp
 ENTRYPOINT ["java"]
 CMD ["-jar", "./app.jar"]
