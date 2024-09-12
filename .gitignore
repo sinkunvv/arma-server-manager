@@ -5,6 +5,9 @@ config/*
 logs/
 .env
 docker-compose-dev.yml
+letsencrypt/
+phpmyadmin/
+data/
 
 HELP.md
 .gradle

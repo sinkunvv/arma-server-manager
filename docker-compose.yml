@@ -1,6 +1,17 @@
 version: '3.3'
 
 services:
+  proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+
   db:
     image: mysql:8.3.0
     restart: always
@@ -14,22 +25,30 @@ services:
     volumes:
       - armaservermanager-db:/var/lib/mysql
 
-  adminer:
-    image: adminer
-    restart: always
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    depends_on:
+      - db
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOSTS: db
+      PMA_USER: "${MYSQL_USER}"
+      PMA_PASSWORD: "${MYSQL_PASSWORD}"
     ports:
-      - "8090:8080"
-
+      - "3000:80"
+    volumes:
+      - ./phpmyadmin/sessions:/sessions
+     
   armaservermanager:
     image: "fugasjunior/armaservermanager:${VERSION}"
     restart: always
     # 'host' network mode is not available on Windows. If you need to run this image on Windows, you need to set up port mappings manually.
-    network_mode: host
+    #network_mode: host
     # uncomment when running on Windows and add additional ports according to your needs
-    #ports:
-    #  - "2311:8080"
-    #  - "2302-2305:2302-2305/udp"
-    #  - "27016:27016/udp"
+    ports:
+      - "8080:8080"
+      - "2302-2305:2302-2305/udp"
+      - "27016:27016/udp"
     depends_on:
       - db
     volumes:
