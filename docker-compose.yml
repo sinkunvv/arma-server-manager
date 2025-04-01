@@ -1,54 +1,12 @@
-version: '3.3'
+version: '3.8'
 
 services:
-  proxy:
-    image: 'jc21/nginx-proxy-manager:latest'
-    restart: unless-stopped
-    ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
-    volumes:
-      - ./data:/data
-      - ./letsencrypt:/etc/letsencrypt
-
-  db:
-    image: mysql:8.3.0
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
-      MYSQL_DATABASE: "${MYSQL_DB_NAME}"
-      MYSQL_USER: "${MYSQL_USER}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-    ports:
-      - "3306:3306"
-    volumes:
-      - armaservermanager-db:/var/lib/mysql
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    depends_on:
-      - db
-    environment:
-      PMA_ARBITRARY: 1
-      PMA_HOSTS: db
-      PMA_USER: "${MYSQL_USER}"
-      PMA_PASSWORD: "${MYSQL_PASSWORD}"
-    ports:
-      - "3000:80"
-    volumes:
-      - ./phpmyadmin/sessions:/sessions
-     
   armaservermanager:
     #image: "fugasjunior/armaservermanager:${VERSION}"
     build:
       context: .
       dockerfile: Dockerfile
-
     restart: always
-    # 'host' network mode is not available on Windows. If you need to run this image on Windows, you need to set up port mappings manually.
-    #network_mode: host
-    # uncomment when running on Windows and add additional ports according to your needs
     ports:
       - "8080:8080"
       - "2302-2305:2302-2305/udp"
@@ -67,6 +25,61 @@ services:
       JWT_SECRET: "${JWT_SECRET}"
       DATABASE_ENCRYPTION_SECRET: "${DATABASE_ENCRYPTION_SECRET}"
       TZ: "${TIMEZONE}"
+    cpuset: "0,1,2,3"
+
+  teamspeak:
+    image: teamspeak:3.13
+    restart: always
+    ports:
+      - "9987:9987/udp"
+      - "10011:10011"
+      - "30033:30033"
+    volumes:
+      - ./teamspeak:/var/ts3server
+    environment:
+      TS3SERVER_LICENSE: accept
+    cpuset: "4,5"
+
+  db:
+    image: mysql:8.3.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DB_NAME}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    ports:
+      - "3306:3306"
+    volumes:
+      - armaservermanager-db:/var/lib/mysql
+    cpuset: "6,7"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOSTS: db
+      PMA_USER: "${MYSQL_USER}"
+      PMA_PASSWORD: "${MYSQL_PASSWORD}"
+    ports:
+      - "3000:80"
+    volumes:
+      - ./phpmyadmin/sessions:/sessions
+    cpuset: "6,7"
+  proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    cpuset: "6,7"
 
 volumes:
   armaservermanager-db:
